@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+"""Brain segmentation module.
+
+This module is a wrapper for ``FSL``'s ``FAST``.
+"""
 from glob import glob
-from typing import List, Tuple, Union
+from typing import List, Union
 
 from ..utils.commandio.command import Command
 from ..utils.commandio.fileio import File
@@ -15,7 +19,7 @@ def fast(
     classes: int = 3,
     neonate: bool = False,
     log: Union[str, LogFile] = None,
-) -> Tuple[str, str, str]:
+) -> List[str]:
     """Performs automated segmentation of NIFTI brain MR images.
 
     Uses ``FSL``'s ``FAST`` (FMRIB's Automated Segmentation Tool) to classify
@@ -28,24 +32,32 @@ def fast(
             images.
 
     WARNING: Use of this function on neonatal neuroimages **WILL** result in
-        suboptimal outputs. **Use with supreme caution**.
+        suboptimal outputs and GM/WM segmentations. **Use this function with
+        supreme caution**.
+    
+    Usage example:
+        >>> 
 
     Args:
-        images: _description_
-        out: _description_
-        intype: _description_. Defaults to 1.
-        classes: _description_. Defaults to 3.
-        neonate: _description_. Defaults to False.
-        log: _description_. Defaults to None.
+        images: List of input images as file paths.
+        out: Output prefix.
+        intype: Input image type. Defaults to 1.
+            * ``1``: T1w
+            * ``2``: T2w
+            * ``3``: PD - Proton Density
+        classes: Number of tissue classes. Defaults to 3.
+        neonate: Enables settings for neonatal neuroimages. Defaults to False.
+            * Assumes input image(s) is/are T2w
+        log: ``LogFile`` object or path to log file. Defaults to None.
 
     Returns:
-        _description_
+        List of files that correspond to segmentation outputs.
     """
     for i, image in enumerate(images):
         with NiiFile(
             src=image, assert_exists=True, validate_nifti=True
         ) as img:
-            images[i]: List[str] = img.abspath()
+            images[i] = img.abspath()
 
     with File(src=out) as f:
         out: str = f.rm_ext()

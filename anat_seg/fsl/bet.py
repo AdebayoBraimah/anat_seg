@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""Brain extraction module.
+
+This module is a wrapper for ``FSL``'s ``BET``.
+"""
 from typing import Tuple, Union
 
 from ..utils.commandio.command import Command

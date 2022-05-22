@@ -5,11 +5,11 @@ This module is a wrapper for several of ``FSL``'s and ``ANTs``'s executables.
 """
 from typing import Tuple, Union
 
-from utils.commandio.command import Command, DependencyError
-from utils.commandio.fileio import File
-from utils.commandio.logutil import LogFile
-from utils.commandio.workdir import WorkDir
-from utils.commandio.tmpdir import TmpDir
+from utils.commandio.commandio.command import Command, DependencyError
+from utils.commandio.commandio.fileio import File
+from utils.commandio.commandio.logutil import LogFile
+from utils.commandio.commandio.workdir import WorkDir
+from utils.commandio.commandio.tmpdir import TmpDir
 from utils.niio import NiiFile
 
 from biascorr import biascorr

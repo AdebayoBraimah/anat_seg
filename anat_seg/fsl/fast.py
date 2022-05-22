@@ -6,9 +6,9 @@ This module is a wrapper for ``FSL``'s ``FAST``.
 from glob import glob
 from typing import List, Union
 
-from ..utils.commandio.command import Command
-from ..utils.commandio.fileio import File
-from ..utils.commandio.logutil import LogFile
+from ..utils.commandio.commandio.command import Command
+from ..utils.commandio.commandio.fileio import File
+from ..utils.commandio.commandio.logutil import LogFile
 from ..utils.niio import NiiFile
 
 
@@ -17,7 +17,7 @@ def fast(
     out: str,
     intype: int = 1,
     classes: int = 3,
-    neonate: bool = False,
+    priors: List[str] = None,
     log: Union[str, LogFile] = None,
 ) -> List[str]:
     """Performs automated segmentation of NIFTI brain MR images.
@@ -28,8 +28,6 @@ def fast(
     NOTE: 
         * Bias field correction needs to be performed prior to use of ``fast``
             as it not implemented in this function.
-        * ``neonate`` will change the default options to be compatible T2w 
-            images.
 
     WARNING: Use of this function on neonatal neuroimages **WILL** result in
         suboptimal outputs and GM/WM segmentations. **Use this function with
@@ -46,18 +44,28 @@ def fast(
             * ``2``: T2w
             * ``3``: PD - Proton Density
         classes: Number of tissue classes. Defaults to 3.
-        neonate: Enables settings for neonatal neuroimages. Defaults to False.
-            * Assumes input image(s) is/are T2w
+        priors: Alternative prior images input as a list (e.g. [ 'csf.nii.gz', 'gm.nii.gz', 'wm.nii.gz' ]).
         log: ``LogFile`` object or path to log file. Defaults to None.
 
     Returns:
         List of files that correspond to segmentation outputs.
     """
+    _sub_cmd: str = ""
+
     for i, image in enumerate(images):
         with NiiFile(
             src=image, assert_exists=True, validate_nifti=True
         ) as img:
             images[i] = img.abspath()
+
+    if priors is not None:
+        for i, prior in enumerate(priors):
+            with NiiFile(
+                src=prior, assert_exists=True, validate_nifti=True
+            ) as img:
+                priors[i] = img.abspath()
+
+        _sub_cmd: str = f"-A {' '.join(priors)}"
 
     with File(src=out) as f:
         out: str = f.rm_ext()
@@ -65,13 +73,9 @@ def fast(
     intype: int = int(intype)
     classes: int = int(classes)
 
-    if neonate:
-        intype: int = 2
-        classes: int = 4
-
     channels: int = len(images)
 
-    cmd: str = f"fast --nobias --channels={channels} --class={classes} \
+    cmd: str = f"fast {_sub_cmd} -v --nobias --channels={channels} --class={classes} \
         --type={intype} --out={out} {' '.join(images)}"
 
     fast: Command = Command(cmd)

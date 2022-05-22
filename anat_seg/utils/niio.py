@@ -7,7 +7,7 @@ from warnings import warn
 
 from enum import Enum, unique
 
-from anat_seg.utils.commandio.fileio import File
+from anat_seg.utils.commandio.commandio.fileio import File
 
 
 class InvalidNiftiFileError(Exception):

@@ -5,9 +5,9 @@ This module is a wrapper for ``FSL``'s ``BET``.
 """
 from typing import Tuple, Union
 
-from ..utils.commandio.command import Command
-from ..utils.commandio.fileio import File
-from ..utils.commandio.logutil import LogFile
+from ..utils.commandio.commandio.command import Command
+from ..utils.commandio.commandio.fileio import File
+from ..utils.commandio.commandio.logutil import LogFile
 from ..utils.niio import NiiFile
 
 
@@ -46,7 +46,7 @@ def bet(
 
     frac_int: float = float(frac_int)
 
-    cmd: str = f"bet {image} {out} -f {frac_int} -R"
+    cmd: str = f"bet {image} {out} -f {frac_int} -v -R"
 
     if mask:
         cmd: str = f"{cmd} -m"

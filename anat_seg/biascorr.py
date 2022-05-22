@@ -6,11 +6,11 @@ This module is a wrapper for ``FSL``'s ``FAST`` and ``ANTs``'s
 """
 from typing import Tuple, Union
 
-from utils.commandio.command import Command, DependencyError
-from utils.commandio.fileio import File
-from utils.commandio.logutil import LogFile
-from utils.commandio.workdir import WorkDir
-from utils.commandio.tmpdir import TmpDir
+from utils.commandio.commandio.command import Command, DependencyError
+from utils.commandio.commandio.fileio import File
+from utils.commandio.commandio.logutil import LogFile
+from utils.commandio.commandio.workdir import WorkDir
+from utils.commandio.commandio.tmpdir import TmpDir
 from utils.niio import NiiFile
 from fsl.bet import bet
 

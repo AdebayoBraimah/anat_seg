@@ -30,6 +30,8 @@ name: str = "anat_seg"
 _MISCDIR: str = os.path.abspath(os.path.join(_pkg_path, "misc"))
 _LICENSE: str = "GNU GENERAL PUBLIC LICENSE v3"
 
+ATLASDIR: str = os.path.join(_MISCDIR, 'atlases')
+
 _version_file: str = os.path.abspath(os.path.join(_MISCDIR, "version.txt"))
 
 with open(_version_file, "r") as f:

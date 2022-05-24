@@ -97,7 +97,7 @@ def fast(
     fast.check_dependency()
     fast.run(log=log)
 
-    seg_list: List[str] = glob(f"{out}_pve_*", recursive=False)
+    seg_list: List[str] = glob(f"{out}_pve*", recursive=False)
     seg_list.sort()
     _tmp: List[str] = glob(f"{out}_mixel*", recursive=False)
     seg_list.append(' '.join(_tmp))

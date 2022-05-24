@@ -6,9 +6,9 @@ from typing import Optional, Tuple, Union
 
 from anat_seg import ATLASDIR
 
-from commandio.commandio.command import Command
-from commandio.commandio.logutil import LogFile
-from commandio.commandio.workdir import WorkDir
+from anat_seg.utils.commandio.commandio.command import Command
+from anat_seg.utils.commandio.commandio.logutil import LogFile
+from anat_seg.utils.commandio.commandio.workdir import WorkDir
 
 
 def extract(file: str, /, log: Optional[Union[LogFile, str]] = None) -> None:

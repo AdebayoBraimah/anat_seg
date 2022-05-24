@@ -7,7 +7,15 @@ import os
 from enum import Enum, unique
 
 from typing import Optional, Union
-from typing_extensions import Self
+
+try:
+    from typing_extensions import Self
+except ImportError:
+    class Self:
+        """Helper class meant to act as a place holder for
+        typing_extensions.Self class type hint.
+        """
+        pass
 
 from anat_seg.utils.commandio.commandio.command import Command
 from anat_seg.utils.commandio.commandio.logutil import LogFile

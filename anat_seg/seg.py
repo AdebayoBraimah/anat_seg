@@ -43,10 +43,11 @@ def segmentation(
     priors: List[str] = None,
     neonate: bool = False,
     log: Union[str, LogFile] = None,
-) -> Union[List[str], Tuple[str, str, str, str]]:
-    """_summary_
+) -> List[str]:
+    """Perform segmentation of some input anatomical neuroimage.
 
-    _extended_summary_
+    In the case of neonates - settings may need to be changed. See the
+    corresponding documentation below for details.
 
     Args:
         image: Input neonatal T2w image.
@@ -64,7 +65,7 @@ def segmentation(
         log: Log file path OR ``LogFile`` object. Defaults to None.
 
     Returns:
-        Either a list of files OR a tuple that correspond to segmentation outputs.
+        List of strings that are files that correspond to segmentation outputs.
     """
     if neonate:
         segs: Tuple[str, str, str, str] = _neo_seg(
@@ -123,7 +124,7 @@ def _seg(
         log: Log file path OR ``LogFile`` object. Defaults to None.
 
     Returns:
-        List of files that correspond to segmentation outputs.
+        List of strings that are files that correspond to segmentation outputs.
     """
     # Output working directory
     outdir: str = os.path.abspath(out)
@@ -170,7 +171,7 @@ def _neo_seg(
     intype: int = 2,
     classes: int = 5,
     log: Optional[Union[str, LogFile]] = None,
-) -> Tuple[str, str, str, str]:
+) -> List[str]:
     """Helper function that performs atlas-based segmentation of neonatal neuroimages into CSF, gray matter, and white matter.
 
     The atlas used is the UNC neonatal structural atlas. The segmentation software uses ``FSL``'s ``FAST``.
@@ -190,7 +191,7 @@ def _neo_seg(
         log: Log file path OR ``LogFile`` object. Defaults to None.
 
     Returns:
-        Tuple of strings that correspond to: CSF, GM, WM and mixeltype NIFTI-1 image files.
+        List of strings that are files that correspond to: CSF, GM, WM, PVE segmentation and mixeltype NIFTI-1 image files.
     """
     # Output working directory
     outdir: str = os.path.abspath(out)
@@ -311,7 +312,7 @@ def _neo_seg(
         # NOTE:
         #   The files used here are consistent with what
         #   has been seen through trial and error.
-        pve0, pve1, pve2, pve3, _, mixel = seg_list
+        pve0, pve1, pve2, pve3, _, pveseg, mixel = seg_list
 
         ### CSF
         with NiiFile(src=pve0, assert_exists=True, validate_nifti=True) as pv:
@@ -319,7 +320,8 @@ def _neo_seg(
                 'fast_segmentation_space-native_tissue-csf.nii.gz'
             )
             _: str = pv.move(csf)
-            log.log(f"Moving {pv.abspath()} to {csf}")
+            if isinstance(log, LogFile):
+                log.log(f"Moving {pv.abspath()} to {csf}")
 
         ### GM
         with NiiFile(src=pve3, assert_exists=True, validate_nifti=True) as pv:
@@ -342,5 +344,5 @@ def _neo_seg(
                     log=log,
                 )
 
-        return csf, gm, wm, mixel
+        return [csf, gm, wm, pveseg, mixel]
 

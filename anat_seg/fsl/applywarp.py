@@ -3,13 +3,25 @@
 
 This module is a wrapper for ``FSL``'s ``applywarp``.
 """
+import os
 from typing import Optional
 
-from ..utils.commandio.commandio.command import Command
-from ..utils.commandio.commandio.logutil import LogFile
-from ..utils.niio import NiiFile
+from anat_seg.utils.commandio.commandio.command import Command
+from anat_seg.utils.commandio.commandio.logutil import LogFile
+from anat_seg.utils.commandio.commandio.tmpfile import TmpFile
+from anat_seg.utils.commandio.commandio.util import timeops
+from anat_seg.utils.niio import NiiFile
 
 
+# Globlally define (temporary) log file object
+# NOTE: Not the best practice in this scenario, but
+#   it gets the job done.
+with TmpFile(tmp_dir=os.getcwd(), ext=".log") as tmpf:
+    log: LogFile = LogFile(log_file=tmpf.src)
+    tmpf.remove()
+
+
+@timeops(log=log)
 def applywarp(
     image: str,
     ref: str,
@@ -55,6 +67,7 @@ def applywarp(
     cmd: str = f"applywarp -v --in={image} --ref={ref} --out={out} {_sub_cmd}"
 
     appwarp: Command = Command(cmd)
+    appwarp.check_dependency()
     appwarp.run(log=log)
 
     return out

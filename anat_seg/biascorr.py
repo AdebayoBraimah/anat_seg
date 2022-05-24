@@ -4,6 +4,7 @@
 This module is a wrapper for ``FSL``'s ``FAST`` and ``ANTs``'s 
 ``N4BiasFieldCorrection``.
 """
+import os
 from typing import Tuple, Union
 
 from utils.commandio.commandio.command import Command, DependencyError
@@ -11,10 +12,21 @@ from utils.commandio.commandio.fileio import File
 from utils.commandio.commandio.logutil import LogFile
 from utils.commandio.commandio.workdir import WorkDir
 from utils.commandio.commandio.tmpdir import TmpDir
+from utils.commandio.commandio.tmpfile import TmpFile
+from utils.commandio.commandio.util import timeops
 from utils.niio import NiiFile
 from fsl.bet import bet
 
 
+# Globlally define (temporary) log file object
+# NOTE: Not the best practice in this scenario, but
+#   it gets the job done.
+with TmpFile(tmp_dir=os.getcwd(), ext=".log") as tmpf:
+    log: LogFile = LogFile(log_file=tmpf.src)
+    tmpf.remove()
+
+
+@timeops(log=log)
 def biascorr(
     image: str, out: str, N4: bool = False, log: Union[str, LogFile] = None
 ) -> Tuple[str, str]:
@@ -123,12 +135,13 @@ def _N4_biascorr(
         image: str = img.abspath()
 
     with File(src=out) as f:
-        out: str = f.rm_ext()
+        if out.endswith('.nii.gz') or out.endswith('.nii'):
+            out: str = f.rm_ext()
         outdir, _, _ = f.file_parts()
 
     with WorkDir(src=outdir) as od:
         with TmpDir(src=od.abspath()) as td:
-            tmpout: str = td.join("brain")
+            tmpout: str = td.join("brain.nii.gz")
 
             _, mask = bet(
                 image=image, out=tmpout, frac_int=0.1, mask=True, log=log
@@ -141,12 +154,12 @@ def _N4_biascorr(
             #   (installed via ANTs) can also be installed as just N4 (via dHCP
             #   structural pipleline). Both are checked here.
             if _cmd1.check_dependency(raise_exc=False):
-                cmd: str = f"{_cmd1}"
+                cmd: str = f"{_cmd1.command}"
             elif _cmd2.check_dependency(raise_exc=False):
-                cmd: str = f"{_cmd2}"
+                cmd: str = f"{_cmd2.command}"
             else:
                 raise DependencyError(
-                    f"{_cmd1} is not installed or in system PATH variable."
+                    f"{_cmd1.command} is not installed or in system PATH variable."
                 )
 
             # Create output filenames

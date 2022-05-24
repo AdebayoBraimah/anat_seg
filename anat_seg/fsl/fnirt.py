@@ -3,14 +3,26 @@
 
 This module is a wrapper for ``FSL``'s ``FNIRT``.
 """
+import os
 from typing import Optional, Tuple
 
-from ..utils.commandio.commandio.command import Command
-from ..utils.commandio.commandio.fileio import File
-from ..utils.commandio.commandio.logutil import LogFile
-from ..utils.niio import NiiFile
+from anat_seg.utils.commandio.commandio.command import Command
+from anat_seg.utils.commandio.commandio.fileio import File
+from anat_seg.utils.commandio.commandio.logutil import LogFile
+from anat_seg.utils.commandio.commandio.tmpfile import TmpFile
+from anat_seg.utils.commandio.commandio.util import timeops
+from anat_seg.utils.niio import NiiFile
 
 
+# Globlally define (temporary) log file object
+# NOTE: Not the best practice in this scenario, but
+#   it gets the job done.
+with TmpFile(tmp_dir=os.getcwd(), ext=".log") as tmpf:
+    log: LogFile = LogFile(log_file=tmpf.src)
+    tmpf.remove()
+
+
+@timeops(log=log)
 def fnirt(
     image: str,
     ref: str,
@@ -50,6 +62,10 @@ def fnirt(
             aff: str = f.abspath()
             _sub_cmd: str = f"--aff={aff}"
 
+    if out.endswith('.nii.gz') or out.endswith('.nii'):
+        with File(src=out) as f:
+            out: str = f.rm_ext()
+
     if bool(iout):
         iout: str = f"{out}.nii.gz"
         _sub_cmd: str = f"{_sub_cmd} --iout={iout}"
@@ -71,6 +87,7 @@ def fnirt(
     cmd: str = f"fnirt --in={image} --ref={ref} -v {_sub_cmd}"
 
     fnirt: Command = Command(cmd)
+    fnirt.check_dependency()
     fnirt.run(log=log)
 
     return iout, fout, cout

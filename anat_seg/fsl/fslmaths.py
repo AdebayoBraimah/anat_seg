@@ -3,16 +3,28 @@
 
 This module is a wrapper for ``FSL``'s ``fslmaths``.
 """
+import os
 from enum import Enum, unique
 
 from typing import Optional, Union
 from typing_extensions import Self
 
-from ..utils.commandio.commandio.command import Command
-from ..utils.commandio.commandio.logutil import LogFile
-from ..utils.niio import NiiFile
+from anat_seg.utils.commandio.commandio.command import Command
+from anat_seg.utils.commandio.commandio.logutil import LogFile
+from anat_seg.utils.commandio.commandio.tmpfile import TmpFile
+from anat_seg.utils.commandio.commandio.util import timeops
+from anat_seg.utils.niio import NiiFile
 
 
+# Globlally define (temporary) log file object
+# NOTE: Not the best practice in this scenario, but
+#   it gets the job done.
+with TmpFile(tmp_dir=os.getcwd(), ext=".log") as tmpf:
+    log: LogFile = LogFile(log_file=tmpf.src)
+    tmpf.remove()
+
+
+@timeops(log=log)
 class fslmaths:
     """``FSL`` wrapper class for the ``fslmaths`` utility binary executable.
 
@@ -92,7 +104,7 @@ class fslmaths:
             self._cmd: str = f"{self._cmd} -mas {img.abspath()}"
         return self
 
-    def ero(self, repeat: int = 1):
+    def ero(self, repeat: int = 1) -> Self:
         """Erode image.
 
         Args:
@@ -103,6 +115,32 @@ class fslmaths:
         """
         for _ in range(repeat):
             self._cmd: str = f"{self._cmd} -ero"
+        return self
+
+    def fmean(self, repeat: int = 1) -> Self:
+        """Mean filtering, kernel weighted (conventionally used with gauss kernel)
+
+        Args:
+            repeat: Number of times to perform erosion. Defaults to 1.
+
+        Returns:
+            Class instance of ``fslmaths``.
+        """
+        for _ in range(repeat):
+            self._cmd: str = f"{self._cmd} -fmean"
+        return self
+
+    def fmedian(self, repeat: int = 1) -> Self:
+        """Median Filtering.
+
+        Args:
+            repeat: Number of times to perform erosion. Defaults to 1.
+
+        Returns:
+            Class instance of ``fslmaths``.
+        """
+        for _ in range(repeat):
+            self._cmd: str = f"{self._cmd} -fmedian"
         return self
 
     def add(self, input: Union[int, float, str]) -> Self:
@@ -230,6 +268,7 @@ class fslmaths:
         self._cmd: str = f"{self._cmd} {out} {_sub_cmd}"
 
         fslmaths: Command = Command(self._cmd)
+        fslmaths.check_dependency()
         fslmaths.run(log=log)
 
         return out
